@@ -60,6 +60,12 @@ const DEFAULT_KIMI_BASE_URL = 'https://api.moonshot.ai/v1';
 const DEFAULT_MODEL = 'moonshot-v1-8k';
 const FALLBACK_MODELS = ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'];
 
+// Map any moonshot/default model name to the valid Kimi Claw model identifier
+function resolveKimiModel(model) {
+  if (model.startsWith('moonshot-')) return 'k2p5';
+  return model;
+}
+
 function getApiKey() {
   return process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || process.env.GEMINI_API_KEY || '';
 }
@@ -91,7 +97,17 @@ function getPrimaryModel() {
   return process.env.KIMI_MODEL || process.env.MOONSHOT_MODEL || DEFAULT_MODEL;
 }
 
+function isKimiClaw() {
+  const key = getApiKey();
+  const endpoint = getEndpoint();
+  return key.startsWith('sk-kimi-') || endpoint.includes('api.kimi.com');
+}
+
 function getModelCandidates() {
+  // For Kimi Claw API, only use the resolved model name (k2p5)
+  if (isKimiClaw()) {
+    return ['k2p5'];
+  }
   if (process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY) {
     return Array.from(new Set([getPrimaryModel(), ...FALLBACK_MODELS].filter(Boolean)));
   }
@@ -146,7 +162,7 @@ async function askModel(system, user, options = {}) {
   const models = getModelCandidates();
   let lastError = null;
 
-  const isAnthropic = key.startsWith('sk-kimi-') || endpoint.includes('api.kimi.com');
+  const isAnthropic = isKimiClaw();
 
   for (const model of models) {
     try {
@@ -163,7 +179,7 @@ async function askModel(system, user, options = {}) {
         headers['X-Kimi-Claw-ID'] = '19e37c51-e502-86f5-8000-0000a834eaf6';
 
         body = {
-          model: model === 'moonshot-v1-8k' ? 'k2p5' : model,
+          model: resolveKimiModel(model),
           max_tokens: options.maxTokens ?? 900,
           system: system,
           messages: [
