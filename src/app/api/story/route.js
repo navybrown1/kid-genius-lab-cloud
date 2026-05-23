@@ -5,7 +5,7 @@ export async function POST(req) {
   try {
     const body = z.object({
       child: z.enum(['ethan', 'valentino', 'enzo']),
-      theme: z.string().min(1),
+      theme: z.string().trim().min(1),
     }).parse(await req.json());
     const story = await generateStory(body.child, body.theme);
     return Response.json({ story });

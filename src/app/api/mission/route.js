@@ -6,7 +6,7 @@ export async function POST(req) {
   try {
     const body = z.object({
       child: z.enum(['ethan', 'valentino', 'enzo']),
-      subject: z.string().min(1),
+      subject: z.string().trim().min(1),
     }).parse(await req.json());
     const state = await loadAppState();
     const childState = summarizePerformance(state, body.child);

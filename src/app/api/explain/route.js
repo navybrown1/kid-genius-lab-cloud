@@ -5,7 +5,7 @@ export async function POST(req) {
   try {
     const body = z.object({
       child: z.enum(['ethan', 'valentino', 'enzo']),
-      topic: z.string().min(1),
+      topic: z.string().trim().min(1),
     }).parse(await req.json());
     const explanation = await generateExplain(body.child, body.topic);
     return Response.json({ explanation });

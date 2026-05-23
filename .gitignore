@@ -7,3 +7,11 @@ node_modules
 *.log
 .DS_Store
 prisma/dev.db
+
+# Secrets & Keys protection
+Edwin's_secrets.txt
+*secrets*.txt
+*secret*.txt
+*.key
+SecureKeys/
+

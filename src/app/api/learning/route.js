@@ -11,7 +11,7 @@ import { loadAppState, normalizeAppState, nextDifficulty, saveAppState, summariz
 
 const requestSchema = z.object({
   child: z.enum(['ethan', 'valentino', 'enzo']),
-  topic: z.string().min(1),
+  topic: z.string().trim().min(1),
   mode: z.enum(['tutor', 'practice', 'hint', 'feedback', 'encouragement', 'summary']),
   question: z.string().optional().default(''),
   answer: z.string().optional().default(''),

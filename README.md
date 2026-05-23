@@ -45,8 +45,21 @@ For a live Kimi test, open:
 
 If this returns `ai.ok: false`, check the Vercel environment variables and redeploy. Most failures come from a missing key, wrong model name, wrong base URL, or Vercel not having been redeployed after env changes.
 
-## Local development
+## Local Development Safe Setup
 
+To run the application locally, follow these steps to securely configure your environment variables:
+
+1. **Copy the example configuration** to create your local variables file:
+   ```bash
+   cp .env.example .env.local
+   ```
+2. **Add your real API keys** (like `KIMI_API_KEY`, `GROQ_API_KEY`, etc.) inside `.env.local`.
+3. **Never commit `.env.local`**: The project's `.gitignore` is pre-configured to ignore all `.env.local` files, preventing private API keys from ever being exposed to GitHub.
+4. **Deploying to production**:
+   - In production (e.g., on Vercel, Render, Railway, Netlify), add your real API keys using the platform's Environment Variables dashboard.
+   - Private keys remain server-side only and are never exposed to the client.
+
+To start the local environment:
 ```bash
 npm install
 npx prisma generate
@@ -55,8 +68,7 @@ npm run dev
 
 ## Database setup
 
-After adding `DATABASE_URL`, run:
-
+To sync your database schema, run:
 ```bash
 npx prisma db push
 ```
