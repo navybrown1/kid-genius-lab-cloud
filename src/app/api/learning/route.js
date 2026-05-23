@@ -16,6 +16,9 @@ const requestSchema = z.object({
   question: z.string().optional().default(''),
   answer: z.string().optional().default(''),
 });
+// Scale factor: 100 stars maps to a 1.0 encouragement score, so the prompt treats a fully
+// progressed child as "max confidence" and scales lower star counts proportionally.
+const ENCOURAGEMENT_STAR_SCALE = 100;
 
 export async function POST(req) {
   try {
@@ -70,6 +73,7 @@ export async function POST(req) {
       await saveAppState(updated);
       return Response.json({
         feedback,
+        state: updated,
         progress: summarizePerformance(normalizeAppState(updated), payload.child),
       });
     }
@@ -79,7 +83,7 @@ export async function POST(req) {
         message: await generateEncouragement(
           payload.child,
           payload.topic,
-          Math.min(1, Math.max(0, childState.stars / 100))
+          Math.min(1, Math.max(0, childState.stars / ENCOURAGEMENT_STAR_SCALE))
         ),
       });
     }

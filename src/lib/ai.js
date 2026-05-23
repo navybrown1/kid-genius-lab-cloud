@@ -45,7 +45,7 @@ const summarySchema = z.object({
 const endpoint = process.env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1/chat/completions';
 
 function getApiKey() {
-  return process.env.KIMI_API_KEY || process.env.MISTRAL_API_KEY || '';
+  return process.env.KIMI_API_KEY || '';
 }
 
 function stripCodeFences(value) {
@@ -65,7 +65,7 @@ async function askModel(system, user) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: process.env.KIMI_MODEL || process.env.MISTRAL_MODEL || 'kimi-k2-0905-preview',
+      model: process.env.KIMI_MODEL || 'kimi-k2-0905-preview',
       temperature: 0.6,
       messages: [
         { role: 'system', content: system },

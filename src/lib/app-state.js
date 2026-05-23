@@ -1,6 +1,7 @@
 import { prisma } from './db';
 
 const CHILDREN = ['ethan', 'valentino', 'enzo'];
+const STARS_PER_LEVEL_SQUARED = 4;
 
 function createChildState(name) {
   return {
@@ -69,7 +70,8 @@ export function normalizeAppState(rawState) {
 }
 
 export function calculateLevel(stars = 0) {
-  return Math.max(1, Math.floor(Math.sqrt(Math.max(stars, 0) / 4)) + 1);
+  const safeStars = Math.max(stars, 0);
+  return Math.max(1, Math.floor(Math.sqrt(safeStars / STARS_PER_LEVEL_SQUARED) + 1));
 }
 
 export function nextDifficulty(current, performance) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const profiles = {
   ethan: 'Curious, funny, challenge-heavy, science-loving.',
@@ -33,8 +33,8 @@ async function postJson(url, body) {
   return data;
 }
 
-async function getJson(url) {
-  const response = await fetch(url);
+async function getJson(url, signal) {
+  const response = await fetch(url, { signal });
   return response.json();
 }
 
@@ -95,6 +95,18 @@ function formatResponse(data) {
   return JSON.stringify(data, null, 2);
 }
 
+function formatClassicResponse(mode, data) {
+  if (mode === 'mission') {
+    return `${data.title}\n\n${data.summary}\n\n${(data.steps || []).map((step, index) => `${index + 1}. ${step}`).join('\n')}\n\nReward: ${data.reward}`;
+  }
+
+  if (mode === 'story') {
+    return data.story;
+  }
+
+  return data.explanation || 'The explanation is still loading.';
+}
+
 export default function Home() {
   const [state, setState] = useState(defaultState);
   const [child, setChild] = useState('ethan');
@@ -108,27 +120,28 @@ export default function Home() {
   const [banner, setBanner] = useState('Pick a child, choose a topic, and start learning.');
   const [loadingAction, setLoadingAction] = useState('');
   const [error, setError] = useState('');
+  const mountedRef = useRef(true);
 
   const currentChild = state.children[child] || defaultState.children.ethan;
   const activeQuestion = practiceQuestions[selectedQuestionIndex] || null;
 
   useEffect(() => {
-    let mounted = true;
-    getJson('/api/state')
+    const controller = new AbortController();
+    getJson('/api/state', controller.signal)
       .then((data) => {
-        if (!mounted) return;
         const nextState = mergeState(data);
         setState(nextState);
         setChild(nextState.activeChild || 'ethan');
       })
-      .catch(() => {
-        if (mounted) {
+      .catch((err) => {
+        if (err?.name !== 'AbortError') {
           setBanner('Offline mode is ready. You can still use the local learning tools.');
         }
       });
 
     return () => {
-      mounted = false;
+      mountedRef.current = false;
+      controller.abort();
     };
   }, []);
 
@@ -144,9 +157,11 @@ export default function Home() {
 
   async function persistChild(nextChild, nextState = state) {
     const updated = mergeState({ ...nextState, activeChild: nextChild });
-    setState(updated);
-    setChild(nextChild);
     await postJson('/api/state', updated);
+    if (mountedRef.current) {
+      setState(updated);
+      setChild(nextChild);
+    }
   }
 
   async function runClassicMode(mode) {
@@ -156,13 +171,7 @@ export default function Home() {
       const path = mode === 'mission' ? '/api/mission' : mode === 'story' ? '/api/story' : '/api/explain';
       const payload = mode === 'mission' ? { child, subject: topic } : mode === 'story' ? { child, theme: topic } : { child, topic };
       const data = await postJson(path, payload);
-      setBanner(
-        mode === 'mission'
-          ? `${data.title}\n\n${data.summary}\n\n${(data.steps || []).map((step, index) => `${index + 1}. ${step}`).join('\n')}\n\nReward: ${data.reward}`
-          : mode === 'story'
-            ? data.story
-            : data.explanation
-      );
+      setBanner(formatClassicResponse(mode, data));
       setTutor(null);
       setPracticeQuestions([]);
       setSummary(null);
@@ -206,8 +215,9 @@ export default function Home() {
         setFeedback(data.feedback);
         setBanner(data.feedback.summary);
         setAnswer('');
-        const refreshed = mergeState(await getJson('/api/state'));
-        setState(refreshed);
+        if (data.state) {
+          setState(mergeState(data.state));
+        }
       }
 
       if (mode === 'encouragement') {
@@ -228,7 +238,9 @@ export default function Home() {
   async function saveChildSelection(nextChild) {
     try {
       await persistChild(nextChild);
-      setBanner(`Switched to ${nextChild}. Ready for a new learning path.`);
+      if (mountedRef.current) {
+        setBanner(`Switched to ${nextChild}. Ready for a new learning path.`);
+      }
     } catch (err) {
       setError(err.message);
     }

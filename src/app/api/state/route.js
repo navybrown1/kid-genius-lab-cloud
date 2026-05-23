@@ -24,6 +24,6 @@ export async function POST(req) {
       return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    return Response.json(normalizeAppState());
+    return Response.json({ error: 'Unable to save state' }, { status: 500 });
   }
 }
