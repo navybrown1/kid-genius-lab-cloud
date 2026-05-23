@@ -71,8 +71,17 @@ function getApiKey() {
 }
 
 function getEndpoint() {
+  const key = getApiKey();
+  const isClawKey = key.startsWith('sk-kimi-');
+
   if (process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY) {
-    const raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL || DEFAULT_KIMI_BASE_URL;
+    let raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL;
+    
+    // Auto-detect the correct base URL based on the key format if not provided
+    if (!raw) {
+      raw = isClawKey ? 'https://api.kimi.com/coding' : DEFAULT_KIMI_BASE_URL;
+    }
+
     const trimmed = raw.trim().replace(/\/+$/, '');
     if (trimmed.includes('api.kimi.com/coding')) {
       return trimmed.endsWith('/v1/messages') ? trimmed : `${trimmed}/v1/messages`;
@@ -82,7 +91,8 @@ function getEndpoint() {
   if (process.env.GEMINI_API_KEY) {
     return 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
   }
-  const raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL || DEFAULT_KIMI_BASE_URL;
+  let raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL;
+  if (!raw) raw = isClawKey ? 'https://api.kimi.com/coding' : DEFAULT_KIMI_BASE_URL;
   const trimmed = raw.trim().replace(/\/+$/, '');
   return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`;
 }
