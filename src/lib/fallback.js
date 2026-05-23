@@ -99,14 +99,45 @@ function topicExamples(topic = 'science') {
     };
   }
 
+  // Smart dynamic categorizer for catch-all general topics (animals, creatures, pets)
+  const isLiving = normalized.includes('horse') || normalized.includes('cat') || normalized.includes('dog') || normalized.includes('animal') || normalized.includes('pet') || normalized.includes('bird') || normalized.includes('fish') || normalized.includes('plant') || normalized.includes('tree') || normalized.includes('dinosaur') || normalized.includes('bug');
+  
+  if (isLiving) {
+    return {
+      definition: `${titleCase(topic)} are amazing living creatures that are a beautiful part of our natural world, sharing their unique energy, behaviors, and roles with planet Earth.`,
+      examples: [
+        `Observing how they interact with their environments, play, communicate, and grow day by day`,
+        `How people build deep friendships, take care of, and learn from ${titleCase(topic)} to protect nature`
+      ],
+      analogy: `${titleCase(topic)} are like our co-travelers on planet Earth—each one has its own special personality and place in nature's grand family.`,
+      challenge: `Think about one thing you appreciate about ${titleCase(topic)}. Can you draw a picture or act like one for 10 seconds?`,
+    };
+  }
+
+  // Creative, arts, sports, and active hobbies
+  const isCreativeOrActivity = normalized.includes('art') || normalized.includes('music') || normalized.includes('cook') || normalized.includes('sport') || normalized.includes('game') || normalized.includes('paint') || normalized.includes('dance') || normalized.includes('sing') || normalized.includes('play');
+
+  if (isCreativeOrActivity) {
+    return {
+      definition: `${titleCase(topic)} is a wonderful way for humans to express their feelings, exercise their bodies and minds, and create joy and connection with others.`,
+      examples: [
+        `Practicing, playing, or creating to build skills and share happy moments with friends and family`,
+        `Noticing how different sounds, movements, or colors in ${titleCase(topic)} make us feel and inspire our imaginations`
+      ],
+      analogy: `${titleCase(topic)} is like a colorful sandbox for your brain—there are no wrong answers, only new ways to explore, play, and express yourself!`,
+      challenge: `Try a quick 1-minute practice or sketch of ${titleCase(topic)}! What is one feeling you want to share through it?`,
+    };
+  }
+
+  // General fallback
   return {
-    definition: `${titleCase(topic)} is a fascinating area of knowledge that helps us understand how things work, how they are made, and why they behave the way they do.`,
+    definition: `${titleCase(topic)} is a wonderful and exciting topic to explore! Learning about it helps us expand our minds, discover how the world works, and grow our curiosity.`,
     examples: [
-      `One real-life application where scientists, engineers, or artists use ${topic} to create or build something new`,
-      `A natural phenomenon or daily habit where ${topic} is active, even if we do not notice it right away`
+      `Where we can see, experience, or use ${titleCase(topic)} in our daily lives or out in the world`,
+      `How thinkers, scientists, or creators study and appreciate ${titleCase(topic)} to discover new ideas`
     ],
-    analogy: `${titleCase(topic)} is like a puzzle piece in the giant map of the world—it connects logic, curiosity, and action together.`,
-    challenge: `Observe your surroundings and find one object that relates to ${topic}. Explain its purpose in one sentence!`,
+    analogy: `${titleCase(topic)} is like a doorway to a new adventure—the more questions you ask, the more wonderful secrets you unlock about the universe!`,
+    challenge: `Think of one fun question or idea you have about ${titleCase(topic)} and share it with someone today!`,
   };
 }
 
