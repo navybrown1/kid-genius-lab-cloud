@@ -8,7 +8,8 @@ Kid Genius Lab is a cloud-first learning mission app for parents. It supports Et
 - PostgreSQL persistence through Prisma.
 - Server-side Kimi calls only. The API key is never exposed to the browser.
 - Local browser fallback is kept only as a convenience if the database is not configured yet.
-- AI generation has safe fallback templates so the app does not crash if Kimi is unavailable.
+- AI generation has safer fallback templates so the app does not crash if Kimi is unavailable.
+- AI prompts now push for topic-specific explanations instead of vague generic content.
 - No dependency on Edwin's machine.
 
 ## Required environment variables
@@ -18,11 +19,31 @@ Set these in Vercel or your cloud provider:
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
 KIMI_API_KEY="your_kimi_api_key_here"
-KIMI_MODEL="kimi-k2-0905-preview"
-KIMI_BASE_URL="https://api.moonshot.ai/v1/chat/completions"
+KIMI_MODEL="moonshot-v1-8k"
+KIMI_BASE_URL="https://api.moonshot.ai/v1"
 ```
 
-`KIMI_MODEL` and `KIMI_BASE_URL` are optional. If omitted, the app uses `kimi-k2-0905-preview` and the default Moonshot-compatible endpoint.
+`KIMI_MODEL` and `KIMI_BASE_URL` are optional. If omitted, the app uses `moonshot-v1-8k` and `https://api.moonshot.ai/v1`. The app also accepts `MOONSHOT_API_KEY`, `MOONSHOT_MODEL`, and `MOONSHOT_BASE_URL` as aliases.
+
+If you previously set `KIMI_BASE_URL` to `https://api.moonshot.ai/v1/chat/completions`, that still works. The runtime normalizes either base URL format.
+
+## AI diagnostics
+
+After deployment, open:
+
+```text
+/api/health
+```
+
+This shows whether the app sees an AI key and which endpoint/model it is configured to use. It does not expose the secret key.
+
+For a live Kimi test, open:
+
+```text
+/api/health?ai=1
+```
+
+If this returns `ai.ok: false`, check the Vercel environment variables and redeploy. Most failures come from a missing key, wrong model name, wrong base URL, or Vercel not having been redeployed after env changes.
 
 ## Local development
 
@@ -50,6 +71,7 @@ npx prisma db push
 ## API routes
 
 - `GET /api/health`
+- `GET /api/health?ai=1`
 - `GET /api/state`
 - `POST /api/state`
 - `POST /api/mission`
@@ -59,4 +81,4 @@ npx prisma db push
 
 ## Privacy note
 
-This is a cloud app. Child profile data and progress are stored in the configured PostgreSQL database. AI prompts are sent only from server-side routes when `KIMI_API_KEY` is configured.
+This is a cloud app. Child profile data and progress are stored in the configured PostgreSQL database. AI prompts are sent only from server-side routes when `KIMI_API_KEY` or `MOONSHOT_API_KEY` is configured.
