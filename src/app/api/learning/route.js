@@ -76,7 +76,11 @@ export async function POST(req) {
 
     if (payload.mode === 'encouragement') {
       return Response.json({
-        message: await generateEncouragement(payload.child, payload.topic, childState.stars / 20),
+        message: await generateEncouragement(
+          payload.child,
+          payload.topic,
+          Math.min(1, Math.max(0, childState.stars / 100))
+        ),
       });
     }
 
