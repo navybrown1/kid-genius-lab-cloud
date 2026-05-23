@@ -6,9 +6,9 @@ Kid Genius Lab is a cloud-first learning mission app for parents. It supports Et
 
 - Next.js app designed for cloud deployment.
 - PostgreSQL persistence through Prisma.
-- Server-side Mistral calls only. The API key is never exposed to the browser.
+- Server-side Kimi calls only. The API key is never exposed to the browser.
 - Local browser fallback is kept only as a convenience if the database is not configured yet.
-- AI generation has safe fallback templates so the app does not crash if Mistral is unavailable.
+- AI generation has safe fallback templates so the app does not crash if Kimi is unavailable.
 - No dependency on Edwin's machine.
 
 ## Required environment variables
@@ -17,11 +17,12 @@ Set these in Vercel or your cloud provider:
 
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
-MISTRAL_API_KEY="your_mistral_api_key_here"
-MISTRAL_MODEL="mistral-large-latest"
+KIMI_API_KEY="your_kimi_api_key_here"
+KIMI_MODEL="kimi-k2-0905-preview"
+KIMI_BASE_URL="https://api.moonshot.ai/v1/chat/completions"
 ```
 
-`MISTRAL_MODEL` is optional. If omitted, the app uses `mistral-large-latest`.
+`KIMI_MODEL` and `KIMI_BASE_URL` are optional. If omitted, the app uses `kimi-k2-0905-preview` and the default Moonshot-compatible endpoint.
 
 ## Local development
 
@@ -51,10 +52,11 @@ npx prisma db push
 - `GET /api/health`
 - `GET /api/state`
 - `POST /api/state`
-- `POST /api/generate/mission`
-- `POST /api/generate/story`
-- `POST /api/generate/explain`
+- `POST /api/mission`
+- `POST /api/story`
+- `POST /api/explain`
+- `POST /api/learning` (tutor, practice, hint, feedback, encouragement, summary)
 
 ## Privacy note
 
-This is a cloud app. Child profile data and progress are stored in the configured PostgreSQL database. AI prompts are sent to Mistral only from server-side routes when `MISTRAL_API_KEY` is configured.
+This is a cloud app. Child profile data and progress are stored in the configured PostgreSQL database. AI prompts are sent only from server-side routes when `KIMI_API_KEY` is configured.
