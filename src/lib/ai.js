@@ -302,8 +302,8 @@ export async function generateStory(child, theme) {
   const kid = kids[child] || kids.ethan;
   try {
     const content = await askModel(
-      'You write short bedtime stories for children. Keep it warm, imaginative, safe, and parent-friendly. Use concrete details from the requested theme.',
-      `Write a bedtime story for ${kid.name}. Personality: ${kid.vibe}. Theme: ${theme}. Keep it under 350 words. Make the theme visible in the plot, not just mentioned once.`,
+      'You write short bedtime stories for children. Keep it warm, imaginative, safe, and parent-friendly. Use concrete details from the requested theme. IMPORTANT: Return ONLY plain text. Do NOT use any Markdown formatting whatsoever (no asterisks for bold/italic, no hashtags, no code blocks).',
+      `Write a plain text bedtime story for ${kid.name}. Personality: ${kid.vibe}. Theme: ${theme}. Keep it under 350 words. Make the theme visible in the plot, not just mentioned once. No Markdown formatting.`,
       { maxTokens: 900 }
     );
     return content || fallbackStory(child, theme);
