@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kid Genius Lab">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#080916"/>
+      <stop offset="0.55" stop-color="#0d0b22"/>
+      <stop offset="1" stop-color="#1a1038"/>
+    </linearGradient>
+    <linearGradient id="planet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4b5fd"/>
+      <stop offset="0.45" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="0.5" stop-color="#fb7185"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="256" cy="258" r="196" fill="url(#halo)" filter="url(#soft)"/>
+
+  <g opacity="0.9">
+    <circle cx="112" cy="118" r="4" fill="#f8fafc"/>
+    <circle cx="404" cy="110" r="5" fill="#fbbf24"/>
+    <circle cx="430" cy="330" r="4" fill="#67e8f9"/>
+    <circle cx="90" cy="352" r="5" fill="#c4b5fd"/>
+    <circle cx="150" cy="430" r="3" fill="#f8fafc"/>
+    <path d="M378 208l6 16 16 6-16 6-6 16-6-16-16-6 16-6z" fill="#fbbf24"/>
+    <path d="M136 210l5 13 13 5-13 5-5 13-5-13-13-5 13-5z" fill="#67e8f9"/>
+  </g>
+
+  <ellipse cx="256" cy="262" rx="188" ry="62" fill="none" stroke="url(#ring)" stroke-width="15" opacity="0.9" transform="rotate(-18 256 262)"/>
+  <circle cx="256" cy="256" r="108" fill="url(#planet)"/>
+  <circle cx="218" cy="216" r="34" fill="#f8fafc" opacity="0.22"/>
+  <path d="M190 300c34 18 98 24 138-6" fill="none" stroke="#0b0b1a" stroke-width="10" stroke-linecap="round" opacity="0.18"/>
+  <ellipse cx="256" cy="262" rx="188" ry="62" fill="none" stroke="url(#ring)" stroke-width="15" opacity="0.35" transform="rotate(-18 256 262)" stroke-dasharray="280 600" stroke-dashoffset="-90"/>
+</svg>

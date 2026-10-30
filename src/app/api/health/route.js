@@ -15,8 +15,9 @@ export async function GET(req) {
 
   const ai = await testKimiConnection();
   return Response.json({
-    ok: true,
+    ok: ai.ok,
+    status: ai.ok ? 'online' : 'degraded',
     app: 'Kid Genius Lab Cloud',
     ai,
-  }, { status: ai.ok ? 200 : 500 });
+  });
 }

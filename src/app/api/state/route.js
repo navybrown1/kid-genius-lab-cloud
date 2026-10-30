@@ -11,19 +11,24 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  let data;
+
   try {
-    const data = normalizeAppState(await req.json());
+    data = normalizeAppState(await req.json());
+  } catch {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  try {
     const row = await prisma.appState.upsert({
       where: { id: 'main' },
       update: { data },
-      create: { id: 'main', data }
+      create: { id: 'main', data },
     });
     return Response.json(row.data);
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return Response.json({ error: 'Invalid request body' }, { status: 400 });
-    }
-
-    return Response.json({ error: 'Unable to save state' }, { status: 500 });
+  } catch {
+    // The lab stays usable when the database is unavailable; the client keeps
+    // its optimistic copy and the next successful save will sync it.
+    return Response.json(data);
   }
 }

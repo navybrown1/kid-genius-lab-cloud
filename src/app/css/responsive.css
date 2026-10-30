@@ -1,0 +1,451 @@
+@media (max-width: 1180px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 318px;
+  }
+
+  .topbar-note {
+    display: none;
+  }
+
+  .hero {
+    gap: 40px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 46px;
+  }
+
+  .hero-visual {
+    width: min(620px, 100%);
+    margin: 6px auto 0;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rail-card.insight-card {
+    grid-column: span 2;
+  }
+
+  .console-body {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .topbar-status {
+    display: none;
+  }
+
+  .crew-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crew-card {
+    padding: 16px;
+  }
+
+  .dock-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .section-note {
+    max-width: 480px;
+    padding-bottom: 0;
+    text-align: left;
+  }
+
+  .parent-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .insight-lists {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 0 18px 50px;
+  }
+
+  .topbar-inner {
+    gap: 12px;
+    padding: 10px 18px;
+  }
+
+  .brand-word {
+    font-size: 17px;
+  }
+
+  .topbar-divider {
+    display: none;
+  }
+
+  .hero {
+    gap: 34px;
+    padding: 36px 0 42px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.7rem, 12vw, 4rem);
+  }
+
+  .hero-lede {
+    margin-top: 18px;
+    font-size: 14px;
+  }
+
+  .composer {
+    flex-wrap: wrap;
+    padding: 10px 10px 10px 16px;
+    border-radius: 22px;
+  }
+
+  .composer input {
+    flex: 1 1 60%;
+  }
+
+  .composer-submit {
+    flex: 1 1 100%;
+    margin-top: 2px;
+  }
+
+  .hero-meta {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 0;
+    width: 100%;
+    margin-top: 28px;
+  }
+
+  .hero-meta > div {
+    padding-left: 16px;
+  }
+
+  .hero-meta > div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .hero-meta strong {
+    font-size: 21px;
+  }
+
+  .spark-panel {
+    padding: 18px;
+    border-radius: 26px;
+  }
+
+  .orbital {
+    height: 188px;
+  }
+
+  .ring-b {
+    width: 258px;
+    height: 258px;
+  }
+
+  .dock-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dock-card {
+    min-height: 158px;
+  }
+
+  .console-top {
+    padding: 18px;
+  }
+
+  .console-body {
+    padding: 18px;
+  }
+
+  .tab-bar {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tab {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 5px;
+  }
+
+  .chat-panel {
+    height: 540px;
+  }
+
+  .chat-row {
+    max-width: 100%;
+  }
+
+  .chat-bubble {
+    font-size: 12.5px;
+  }
+
+  .quiz-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .question-card {
+    padding: 16px;
+  }
+
+  .feedback-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-top {
+    gap: 10px;
+  }
+
+  .reward-pills {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mission-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mission-head .progress-ring {
+    align-self: center;
+  }
+
+  .story-paper {
+    padding: 22px 20px;
+  }
+
+  .story-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .story-controls {
+    justify-content: center;
+  }
+
+  .rail {
+    grid-template-columns: 1fr;
+  }
+
+  .rail-card.insight-card {
+    grid-column: auto;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: 92vh;
+    padding: 22px 18px;
+    border-radius: 24px;
+  }
+
+  .modal-head {
+    gap: 10px;
+  }
+
+  .modal-tabs {
+    width: 100%;
+  }
+
+  .modal-tabs button {
+    flex: 1;
+  }
+
+  .parent-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .activity-item time {
+    display: none;
+  }
+
+  .badge-toast {
+    top: 70px;
+    right: 12px;
+  }
+
+  .toast {
+    bottom: 14px;
+  }
+
+  .footer {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .brand-mark svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .brand-word {
+    font-size: 15.5px;
+  }
+
+  .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .streak-pill {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 10.5px;
+  }
+
+  .parent-button {
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  .parent-button span:last-child {
+    display: none;
+  }
+
+  .parent-avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .hero h1 {
+    font-size: 2.55rem;
+  }
+
+  .eyebrow {
+    font-size: 8.5px;
+  }
+
+  .hero-meta span {
+    font-size: 8px;
+  }
+
+  .spark-question strong {
+    font-size: 13.5px;
+  }
+
+  .starter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .voice-on {
+    display: none;
+  }
+
+  .quick-prompts .chip {
+    font-size: 9.5px;
+  }
+
+  .quiz-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quiz-actions .btn {
+    width: 100%;
+  }
+
+  .quiz-pills {
+    display: none;
+  }
+
+  .answer-hint {
+    display: none;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .story-controls .btn {
+    flex: 1 1 100%;
+  }
+
+  .mission-meta span {
+    font-size: 8px;
+  }
+
+  .onboarding-actions .btn {
+    flex: 1;
+  }
+
+  .badge-toast {
+    top: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+.app[data-motion='off'] .star,
+.app[data-motion='off'] .aurora,
+.app[data-motion='off'] .grain,
+.app[data-motion='off'] .marquee-track,
+.app[data-motion='off'] .orbital-core,
+.app[data-motion='off'] .orbital-dot,
+.app[data-motion='off'] .orbital-ring,
+.app[data-motion='off'] .empty-orb,
+.app[data-motion='off'] .results-burst,
+.app[data-motion='off'] .complete-trophy,
+.app[data-motion='off'] .onboarding-art,
+.app[data-motion='off'] .levelup-burst,
+.app[data-motion='off'] .typing i {
+  animation: none !important;
+}
+
+.app[data-motion='off'] * {
+  transition-duration: 0.01ms !important;
+}
+
+.app[data-motion='off'] .confetti {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+}

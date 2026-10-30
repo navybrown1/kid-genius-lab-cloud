@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  generateChatReply,
   generateEncouragement,
   generateFeedback,
   generateHint,
@@ -12,9 +13,19 @@ import { loadAppState, normalizeAppState, nextDifficulty, saveAppState, summariz
 const requestSchema = z.object({
   child: z.enum(['ethan', 'valentino', 'enzo']),
   topic: z.string().trim().min(1),
-  mode: z.enum(['tutor', 'practice', 'hint', 'feedback', 'encouragement', 'summary']),
+  mode: z.enum(['tutor', 'practice', 'hint', 'feedback', 'encouragement', 'summary', 'chat']),
   question: z.string().optional().default(''),
   answer: z.string().optional().default(''),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().max(2000),
+      })
+    )
+    .max(20)
+    .optional()
+    .default([]),
 });
 // Scale factor: 100 stars maps to a 1.0 encouragement score, so the prompt treats a fully
 // progressed child as "max confidence" and scales lower star counts proportionally.
@@ -44,6 +55,17 @@ export async function POST(req) {
       );
     }
 
+    if (payload.mode === 'chat') {
+      return Response.json({
+        reply: await generateChatReply(
+          payload.child,
+          payload.topic,
+          payload.messages,
+          childState.level
+        ),
+      });
+    }
+
     if (payload.mode === 'feedback') {
       const feedback = await generateFeedback(
         payload.child,
@@ -54,17 +76,21 @@ export async function POST(req) {
         childState.lastDifficulty
       );
       const performance = Math.max(0, Math.min(1, feedback.score / 100));
+      const starsEarned = performance >= 0.7 ? 3 : 1;
+      const xpEarned = 10 + Math.round(feedback.score / 10);
       const updated = updateChildProgress(state, payload.child, {
         topic: payload.topic,
         performance,
-        starsDelta: performance >= 0.7 ? 2 : 1,
+        starsDelta: starsEarned,
+        xpDelta: xpEarned,
         quizCountDelta: 1,
         practiceCountDelta: 1,
+        bumpStreak: true,
         lastDifficulty: nextDifficulty(childState.lastDifficulty, performance),
         masteredTopic: performance >= 0.75 ? payload.topic : undefined,
         struggleTopic: performance < 0.55 ? payload.topic : undefined,
         historyEntry: {
-          kind: 'quiz-feedback',
+          kind: 'quiz',
           topic: payload.topic,
           score: feedback.score,
           question: payload.question,
@@ -73,6 +99,7 @@ export async function POST(req) {
       await saveAppState(updated);
       return Response.json({
         feedback,
+        award: { stars: starsEarned, xp: xpEarned },
         state: updated,
         progress: summarizePerformance(normalizeAppState(updated), payload.child),
       });

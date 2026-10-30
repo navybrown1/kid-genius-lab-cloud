@@ -342,7 +342,7 @@ export async function generateTutorAnswer(child, topic, level = 1, difficulty = 
       analogy: `${topic} can be easier to understand when you compare it to something the child already knows.`,
       encouragement: `Good thinking, ${kid.name}. The goal is not perfect words. The goal is noticing more.`
     }),
-    'You are a kid-friendly tutor who teaches real knowledge clearly and playfully.',
+    'You are a kid-friendly tutor who teaches real knowledge clearly and playfully. Use plain text inside JSON strings, never Markdown.',
     `Teach ${topic} to ${kid.name}. Personality: ${kid.vibe}. Level: ${level}. Difficulty: ${difficulty}.
     You MUST return a JSON object with the following exact keys:
     - "answer": a kid-friendly explanation including a real definition, at least two concrete examples, why it matters, and one simple question the child can answer (string)
@@ -350,6 +350,33 @@ export async function generateTutorAnswer(child, topic, level = 1, difficulty = 
     - "analogy": a clever, clear comparison comparing the topic to something the child already knows (string)
     - "encouragement": a warm, motivating message personalized for ${kid.name} (string)`
   );
+}
+
+export async function generateChatReply(child, topic, messages = [], level = 1) {
+  const kid = kids[child] || kids.ethan;
+  const transcript = messages
+    .slice(-10)
+    .map((message) => `${message.role === 'user' ? 'Child' : 'Tutor'}: ${String(message.content || '').slice(0, 600)}`)
+    .join('\n');
+
+  try {
+    const content = await askModel(
+      'You are a warm, playful science tutor talking with a young child. Be accurate, vivid, and concrete. Use one real example and one tiny analogy. Keep replies under 120 words. Plain text only, no Markdown. Always end with one short question that invites the child to think.',
+      `Child: ${kid.name}. Personality: ${kid.vibe}. Topic: ${topic}. Level: ${level}.
+Conversation so far:
+${transcript || `Child: Tell me something amazing about ${topic}.`}
+
+Reply to the child's last message. Stay on the topic of ${topic} unless the child changes it.`,
+      { maxTokens: 320, temperature: 0.6 }
+    );
+    return (
+      content ||
+      `That is a brilliant question, ${kid.name}. Here is one way to think about ${topic}: every big idea is built from smaller clues. Look for one real example around you, then ask what it does and why it matters. What is one ${topic} clue you can spot today?`
+    );
+  } catch (error) {
+    logAiFailure('Chat reply generation failed', error);
+    return `That is a brilliant question, ${kid.name}. Here is one way to think about ${topic}: every big idea is built from smaller clues. Look for one real example around you, then ask what it does and why it matters. What is one ${topic} clue you can spot today?`;
+  }
 }
 
 export async function generatePracticeQuestions(child, topic, level = 1, difficulty = 'medium') {
