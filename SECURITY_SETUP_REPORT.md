@@ -25,11 +25,11 @@ The following clean environment variable names have been populated and configure
 - `GITHUB_API_KEY`
 - `MISTRAL_API_KEY`
 - `NEON_API_KEY`
-- `KIMI_API_KEY`
+- `KILO_API_KEY`
 - `DEEPSEEK_API_KEY`
 - `Z_AI_API_KEY`
 
-*Note: Model-specific optional defaults (`KIMI_MODEL="k2p5"` and `KIMI_BASE_URL="https://api.kimi.com/coding"`) were also configured locally for maximum compatibility.*
+*Note: Model-specific optional defaults (`KILO_MODEL="kilo-auto/free"` and `KILO_BASE_URL="https://ai-gateway.kilo.ai/api/v1"`) were also configured locally for maximum compatibility.*
 
 ---
 

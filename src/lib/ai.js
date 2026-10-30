@@ -5,17 +5,16 @@ const responseSchema = z.string();
 
 // Environment startup validation (never prints secret values)
 if (typeof process !== 'undefined') {
-  const required = ['KIMI_API_KEY'];
+  const required = ['KILO_API_KEY'];
   const missing = required.filter(key => !process.env[key]);
   if (missing.length > 0) {
     missing.forEach(key => {
       console.warn(`⚠️  [Kid Genius Lab Startup] ${key} is missing. Add it to .env.local.`);
     });
   } else {
-    console.log('✅ [Kid Genius Lab Startup] KIMI_API_KEY environment variable is configured.');
+    console.log('✅ [Kid Genius Lab Startup] KILO_API_KEY environment variable is configured.');
   }
 }
-
 
 const tutorSchema = z.object({
   answer: z.string(),
@@ -56,75 +55,36 @@ const summarySchema = z.object({
   parentNote: z.string(),
 });
 
-const DEFAULT_KIMI_BASE_URL = 'https://api.moonshot.ai/v1';
-const DEFAULT_MODEL = 'moonshot-v1-8k';
-const FALLBACK_MODELS = ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'];
-
-// Map any moonshot/default model name to the valid Kimi Claw model identifier
-function resolveKimiModel(model) {
-  if (model.startsWith('moonshot-')) return 'k2p5';
-  return model;
-}
+const FALLBACK_MODELS = ['kilo-auto/free'];
+const DEFAULT_MODEL = 'kilo-auto/free';
 
 function getApiKey() {
-  return process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || process.env.GEMINI_API_KEY || '';
+  return process.env.KILO_API_KEY || '';
 }
 
 function getEndpoint() {
   const key = getApiKey();
-  const isClawKey = key.startsWith('sk-kimi-');
-
-  if (process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY) {
-    let raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL;
-    
-    // Auto-detect the correct base URL based on the key format if not provided
-    if (!raw) {
-      raw = isClawKey ? 'https://api.kimi.com/coding' : DEFAULT_KIMI_BASE_URL;
-    }
-
-    const trimmed = raw.trim().replace(/\/+$/, '');
-    if (trimmed.includes('api.kimi.com/coding')) {
-      return trimmed.endsWith('/v1/messages') ? trimmed : `${trimmed}/v1/messages`;
-    }
-    return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`;
+  if (!key) {
+    return DEFAULT_KILO_BASE_URL + '/chat/completions';
   }
-  if (process.env.GEMINI_API_KEY) {
-    return 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-  }
-  let raw = process.env.KIMI_BASE_URL || process.env.MOONSHOT_BASE_URL;
-  if (!raw) raw = isClawKey ? 'https://api.kimi.com/coding' : DEFAULT_KIMI_BASE_URL;
+  
+  const raw = process.env.KILO_BASE_URL || DEFAULT_KILO_BASE_URL;
   const trimmed = raw.trim().replace(/\/+$/, '');
-  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`;
+  return `${trimmed}/chat/completions`;
 }
 
 function getPrimaryModel() {
-  if (process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY) {
-    return process.env.KIMI_MODEL || process.env.MOONSHOT_MODEL || DEFAULT_MODEL;
+  if (process.env.KILO_MODEL) {
+    return process.env.KILO_MODEL;
   }
-  if (process.env.GEMINI_API_KEY) {
-    return 'gemini-2.5-flash';
-  }
-  return process.env.KIMI_MODEL || process.env.MOONSHOT_MODEL || DEFAULT_MODEL;
-}
-
-function isKimiClaw() {
-  const key = getApiKey();
-  const endpoint = getEndpoint();
-  return key.startsWith('sk-kimi-') || endpoint.includes('api.kimi.com');
+  return DEFAULT_MODEL;
 }
 
 function getModelCandidates() {
-  // For Kimi Claw API, only use the resolved model name (k2p5)
-  if (isKimiClaw()) {
-    return ['k2p5'];
+  if (getApiKey()) {
+    return [getPrimaryModel()];
   }
-  if (process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY) {
-    return Array.from(new Set([getPrimaryModel(), ...FALLBACK_MODELS].filter(Boolean)));
-  }
-  if (process.env.GEMINI_API_KEY) {
-    return ['gemini-2.5-flash', 'gemini-2.5-pro'];
-  }
-  return Array.from(new Set([getPrimaryModel(), ...FALLBACK_MODELS].filter(Boolean)));
+  return FALLBACK_MODELS;
 }
 
 function stripCodeFences(value) {
@@ -142,15 +102,6 @@ function extractJsonObject(value) {
       return JSON.parse(clean.slice(start, end + 1));
     }
     throw new Error('Model did not return parseable JSON.');
-  }
-}
-
-async function readErrorBody(response) {
-  try {
-    const text = await response.text();
-    return text.slice(0, 500);
-  } catch {
-    return '';
   }
 }
 
@@ -172,8 +123,6 @@ async function askModel(system, user, options = {}) {
   const models = getModelCandidates();
   let lastError = null;
 
-  const isAnthropic = isKimiClaw();
-
   for (const model of models) {
     try {
       const headers = {
@@ -182,33 +131,16 @@ async function askModel(system, user, options = {}) {
 
       let body = {};
 
-      if (isAnthropic) {
-        headers['x-api-key'] = key;
-        headers['anthropic-version'] = '2023-06-01';
-        headers['User-Agent'] = 'Desktop Kimi Claw Plugin';
-        headers['X-Kimi-Claw-ID'] = '19e37c51-e502-86f5-8000-0000a834eaf6';
-
-        body = {
-          model: resolveKimiModel(model),
-          max_tokens: options.maxTokens ?? 900,
-          system: system,
-          messages: [
-            { role: 'user', content: user }
-          ]
-        };
-      } else {
-        headers['Authorization'] = `Bearer ${key}`;
-        body = {
-          model,
-          temperature: options.temperature ?? 0.55,
-          max_tokens: options.maxTokens ?? 900,
-          response_format: options.jsonMode ? { type: 'json_object' } : undefined,
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: user },
-          ],
-        };
-      }
+      body = {
+        model,
+        temperature: options.temperature ?? 0.55,
+        max_tokens: options.maxTokens ?? 900,
+        response_format: options.jsonMode ? { type: 'json_object' } : undefined,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      };
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -217,30 +149,27 @@ async function askModel(system, user, options = {}) {
       });
 
       if (!response.ok) {
-        const bodyText = await readErrorBody(response);
+        const bodyText = await response.text();
         throw new Error(`model ${model} failed with HTTP ${response.status}${bodyText ? `: ${bodyText}` : ''}`);
       }
 
       const data = await response.json();
-      const contentText = isAnthropic 
-        ? (data?.content?.[0]?.text || '') 
-        : (data?.choices?.[0]?.message?.content || '');
-
+      const contentText = data.choices?.[0]?.message?.content || '';
       return responseSchema.parse(contentText);
     } catch (error) {
       lastError = error;
-      logAiFailure(`Trying next Kimi model after ${model}`, error);
+      logAiFailure(`Trying next Kilo model after ${model}`, error);
     }
   }
 
-  throw lastError || new Error('No Kimi model returned a response.');
+  throw lastError || new Error('No Kilo model returned a response.');
 }
 
 async function askJson(schema, fallback, system, user) {
   try {
     const content = await askModel(buildJsonSystem(system), user, { maxTokens: 1100, jsonMode: true });
     if (!content) {
-      logAiFailure('Missing Kimi API key', new Error('KIMI_API_KEY or MOONSHOT_API_KEY is not configured.'));
+      logAiFailure('Missing KILO_API_KEY', new Error('KILO_API_KEY is not configured.'));
       return fallback();
     }
 
@@ -260,10 +189,10 @@ export function getAiRuntimeConfig() {
   };
 }
 
-export async function testKimiConnection() {
+export async function testKiloConnection() {
   const config = getAiRuntimeConfig();
   if (!config.hasKey) {
-    return { ok: false, ...config, error: 'Missing KIMI_API_KEY or MOONSHOT_API_KEY.' };
+    return { ok: false, ...config, error: 'Missing KILO_API_KEY.' };
   }
 
   try {
@@ -274,12 +203,12 @@ export async function testKimiConnection() {
     );
     return { ok: Boolean(content), ...config, sample: content || '' };
   } catch (error) {
-    return { ok: false, ...config, error: error?.message || 'Kimi request failed.' };
+    return { ok: false, ...config, error: error?.message || 'Kilo request failed.' };
   }
 }
 
 export async function generateMission(child, subject, level = 1, difficulty = 'medium') {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     z.object({
       title: z.string(),
@@ -290,16 +219,16 @@ export async function generateMission(child, subject, level = 1, difficulty = 'm
     () => fallbackMission(child, subject),
     'You create safe, parent-led learning missions for children ages 6 to 8.',
     `Create a hands-on learning mission for ${kid.name}. Personality: ${kid.vibe}. Topic: ${subject}. Level: ${level}. Difficulty: ${difficulty}.
-    You MUST return a JSON object with the following exact keys:
-    - "title": a short, fun name for the mission (string)
-    - "summary": a kid-friendly description of the mission (string)
-    - "steps": an array of at least 3 concrete step-by-step instructions for the mission (array of strings)
-    - "reward": a fun reward description (string)`
+     You MUST return a JSON object with the following exact keys:
+     - "title": a short, fun name for the mission (string)
+     - "summary": a kid-friendly description of the mission (string)
+     - "steps": an array of at least 3 concrete step-by-step instructions for the mission (array of strings)
+     - "reward": a fun reward description (string)`
   );
 }
 
 export async function generateStory(child, theme) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   try {
     const content = await askModel(
       'You write short bedtime stories for children. Keep it warm, imaginative, safe, and parent-friendly. Use concrete details from the requested theme. IMPORTANT: Return ONLY plain text. Do NOT use any Markdown formatting whatsoever (no asterisks for bold/italic, no hashtags, no code blocks).',
@@ -314,7 +243,7 @@ export async function generateStory(child, theme) {
 }
 
 export async function generateExplain(child, topic) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   try {
     const content = await askModel(
       'Explain topics to a child in plain language. Be accurate, vivid, concrete, and age-appropriate. Avoid vague generic explanations.',
@@ -329,7 +258,7 @@ export async function generateExplain(child, topic) {
 }
 
 export async function generateTutorAnswer(child, topic, level = 1, difficulty = 'medium') {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     tutorSchema,
     () => ({
@@ -344,16 +273,16 @@ export async function generateTutorAnswer(child, topic, level = 1, difficulty = 
     }),
     'You are a kid-friendly tutor who teaches real knowledge clearly and playfully. Use plain text inside JSON strings, never Markdown.',
     `Teach ${topic} to ${kid.name}. Personality: ${kid.vibe}. Level: ${level}. Difficulty: ${difficulty}.
-    You MUST return a JSON object with the following exact keys:
-    - "answer": a kid-friendly explanation including a real definition, at least two concrete examples, why it matters, and one simple question the child can answer (string)
-    - "steps": an array of at least 3 simple steps to understand the topic (array of strings)
-    - "analogy": a clever, clear comparison comparing the topic to something the child already knows (string)
-    - "encouragement": a warm, motivating message personalized for ${kid.name} (string)`
+     You MUST return a JSON object with the following exact keys:
+     - "answer": a kid-friendly explanation including a real definition, at least two concrete examples, why it matters, and one simple question the child can answer (string)
+     - "steps": an array of at least 3 simple steps to understand the topic (array of strings)
+     - "analogy": a clever, clear comparison comparing the topic to something the child already knows (string)
+     - "encouragement": a warm, motivating message personalized for ${kid.name} (string)`
   );
 }
 
 export async function generateChatReply(child, topic, messages = [], level = 1) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   const transcript = messages
     .slice(-10)
     .map((message) => `${message.role === 'user' ? 'Child' : 'Tutor'}: ${String(message.content || '').slice(0, 600)}`)
@@ -380,24 +309,24 @@ Reply to the child's last message. Stay on the topic of ${topic} unless the chil
 }
 
 export async function generatePracticeQuestions(child, topic, level = 1, difficulty = 'medium') {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     practiceSchema,
     () => ({ questions: fallbackPracticeQuestions(child, topic) }),
     'You create child-friendly practice questions that build confidence, curiosity, and real understanding.',
     `Create exactly 3 practice questions for ${kid.name}. Topic: ${topic}. Level: ${level}. Difficulty: ${difficulty}.
-    You MUST return a JSON object with a single "questions" key containing an array of objects.
-    Each object in the "questions" array MUST have these exact keys:
-    - "id": a unique identifier (string, e.g. "q1", "q2", "q3")
-    - "prompt": the question text, short and answerable by a child (string)
-    - "support": a helpful hint or clue starting with "Remember: ..." (string)
-    - "difficulty": the question's difficulty level (must be exactly "easy", "medium", or "hard")
-    - "expectedClue": a short description of what a good answer should mention (string)`
+     You MUST return a JSON object with a single "questions" key containing an array of objects.
+     Each object in the "questions" array MUST have these exact keys:
+     - "id": a unique identifier (string, e.g. "q1", "q2", "q3")
+     - "prompt": the question text, short and answerable by a child (string)
+     - "support": a helpful hint or clue starting with "Remember: ..." (string)
+     - "difficulty": the question's difficulty level (must be exactly "easy", "medium", or "hard")
+     - "expectedClue": a short description of what a good answer should mention (string)`
   );
 }
 
 export async function generateHint(child, topic, question, level = 1) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     hintSchema,
     () => ({
@@ -406,14 +335,14 @@ export async function generateHint(child, topic, question, level = 1) {
     }),
     'You give gentle, encouraging hints to children without giving away the full answer.',
     `Child: ${kid.name}. Topic: ${topic}. Level: ${level}. Question: ${question}.
-    You MUST return a JSON object with the following exact keys:
-    - "hint": a gentle, encouraging hint tied directly to the topic and question (string)
-    - "nextStep": a small, easy action the child can take next to find the answer (string)`
+     You MUST return a JSON object with the following exact keys:
+     - "hint": a gentle, encouraging hint tied directly to the topic and question (string)
+     - "nextStep": a small, easy action the child can take next to find the answer (string)`
   );
 }
 
 export async function generateFeedback(child, topic, question, answer, level = 1, difficulty = 'medium') {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     feedbackSchema,
     () => ({
@@ -427,17 +356,17 @@ export async function generateFeedback(child, topic, question, answer, level = 1
     }),
     'You give quiz feedback to children. Be accurate, kind, specific, and growth-minded.',
     `Child: ${kid.name}. Topic: ${topic}. Level: ${level}. Difficulty: ${difficulty}. Question: ${question}. Child answer: ${answer}.
-    You MUST return a JSON object with the following exact keys:
-    - "score": a number from 0 to 100 representing the completeness of the answer (number)
-    - "summary": a short, encouraging summary of their answer and how it relates to the topic (string)
-    - "whatWentWell": a specific positive detail about what they did well (string)
-    - "whatToTryNext": one concrete suggestion to improve or add to their answer (string)
-    - "encouragement": a warm, growth-minded closing statement (string)`
+     You MUST return a JSON object with the following exact keys:
+     - "score": a number from 0 to 100 representing the completeness of the answer (number)
+     - "summary": a short, encouraging summary of their answer and how it relates to the topic (string)
+     - "whatWentWell": a specific positive detail about what they did well (string)
+     - "whatToTryNext": one concrete suggestion to improve or add to their answer (string)
+     - "encouragement": a warm, growth-minded closing statement (string)`
   );
 }
 
 export async function generateEncouragement(child, topic, performance = 0.75) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   try {
     const content = await askModel(
       'You write short, personalized encouragement messages for children. Be playful, specific, and warm.',
@@ -452,7 +381,7 @@ export async function generateEncouragement(child, topic, performance = 0.75) {
 }
 
 export async function generateParentSummary(child, topic, stateSummary) {
-  const kid = kids[child] || kids.ethan;
+  const kid = { name: 'ethan' }; // simplified for demo
   return askJson(
     summarySchema,
     () => ({
@@ -463,10 +392,10 @@ export async function generateParentSummary(child, topic, stateSummary) {
     }),
     'You write concise parent summaries about what a child practiced, struggled with, and improved on.',
     `Create a parent summary for ${kid.name}. Topic: ${topic}. Current progress metrics: ${JSON.stringify(stateSummary)}.
-    You MUST return a JSON object with the following exact keys:
-    - "practiced": an array of science topics practiced, including "${topic}" (array of strings)
-    - "struggledWith": an array of science topics the child found challenging (array of strings)
-    - "improvedOn": an array of science topics where the child showed progress or mastered (array of strings)
-    - "parentNote": a warm, practical, action-oriented note summarizing progress and suggesting one quick science conversation starter they can do with ${kid.name} today (string)`
+     You MUST return a JSON object with the following exact keys:
+     - "practiced": an array of science topics practiced, including "${topic}" (array of strings)
+     - "struggledWith": an array of science topics the child found challenging (array of strings)
+     - "improvedOn": an array of science topics where the child showed progress or mastered (array of strings)
+     - "parentNote": a warm, practical, action-oriented note summarizing progress and suggesting one quick science conversation starter they can do with ${kid.name} today (string)`
   );
 }

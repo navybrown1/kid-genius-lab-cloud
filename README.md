@@ -39,7 +39,7 @@ Three profiles — **Ethan**, **Valentino**, and **Enzo** — each with their ow
 - Next.js 15 (App Router) + React 19
 - Prisma + PostgreSQL for cloud persistence
 - Zod for request validation
-- Kimi / Moonshot for server-side AI generation
+- Kilo AI Gateway for server-side AI generation (OpenAI-compatible API)
 - Hand-written CSS design system split into focused files under `src/app/css/`
 
 ## Design system
@@ -88,9 +88,9 @@ This creates the `AppState` table used by `GET/POST /api/state`.
 
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
-KIMI_API_KEY="your_kimi_api_key_here"
-KIMI_MODEL="k2p5"
-KIMI_BASE_URL="https://api.kimi.com/coding"
+KILO_API_KEY="your_kilo_api_key_here"
+KILO_MODEL="kilo-auto/free"
+KILO_BASE_URL="https://ai-gateway.kilo.ai/api/v1"
 ```
 
 `KIMI_MODEL` and `KIMI_BASE_URL` are optional. The app also accepts `MOONSHOT_API_KEY`, `MOONSHOT_MODEL`, and `MOONSHOT_BASE_URL` as aliases, and normalizes either base-URL format.

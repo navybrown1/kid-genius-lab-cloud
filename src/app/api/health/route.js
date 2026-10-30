@@ -1,4 +1,4 @@
-import { getAiRuntimeConfig, testKimiConnection } from '../../../lib/ai';
+import { getAiRuntimeConfig, testKiloConnection } from '../../../lib/ai';
 
 export async function GET(req) {
   const url = new URL(req.url);
@@ -9,11 +9,11 @@ export async function GET(req) {
       ok: true,
       app: 'Kid Genius Lab Cloud',
       ai: getAiRuntimeConfig(),
-      hint: 'Add ?ai=1 to run a live Kimi connection test.',
+      hint: 'Add ?ai=1 to run a live Kilo connection test.',
     });
   }
 
-  const ai = await testKimiConnection();
+  const ai = await testKiloConnection();
   return Response.json({
     ok: ai.ok,
     status: ai.ok ? 'online' : 'degraded',
